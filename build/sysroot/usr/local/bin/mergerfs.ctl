@@ -85,13 +85,9 @@ def remove_srcmount(ctrlfile,srcmount):
 
 def normalize_key(key):
     if type(key) == bytes:
-        if key.startswith(b'user.mergerfs.'):
-            return key
-        return b'user.mergerfs.' + key
+        return key if key.startswith(b'user.mergerfs.') else b'user.mergerfs.' + key
     elif type(key) == str:
-        if key.startswith('user.mergerfs.'):
-            return key
-        return 'user.mergerfs.' + key
+        return key if key.startswith('user.mergerfs.') else f'user.mergerfs.{key}'
 
 
 def print_mergerfs_info(fspaths):
@@ -160,8 +156,7 @@ def cmd_add(fspaths,args):
 def cmd_add_device(fspaths,args):
     for fspath in fspaths:
         ctrlfile = control_file(fspath)
-        mount = device2mount(args.path)
-        if mount:
+        if mount := device2mount(args.path):
             add_srcmount(ctrlfile,mount)
         else:
             print('{0} not found'.format(args.path))
@@ -181,8 +176,7 @@ def cmd_remove(fspaths,args):
 def cmd_remove_device(fspaths,args):
     for fspath in fspaths:
         ctrlfile = control_file(fspath)
-        mount = device2mount(args.path)
-        if mount:
+        if mount := device2mount(args.path):
             remove_srcmount(ctrlfile,mount)
         else:
             print('{0} not found'.format(args.path.decode()))
@@ -260,7 +254,7 @@ def main():
         fspaths = [args.mount]
     elif not args.mount and not fspaths:
         print_and_exit('no mergerfs mounts found',1)
-    elif args.mount and args.mount not in fspaths:
+    elif args.mount:
         print_and_exit('{0} is not a mergerfs mount'.format(args.mount),1)
 
     if hasattr(args, 'func'):
